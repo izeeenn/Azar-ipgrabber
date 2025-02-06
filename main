@@ -1,0 +1,78 @@
+const ipMenu = document.createElement("div");
+ipMenu.style.position = "fixed";
+ipMenu.style.top = "10px";
+ipMenu.style.right = "10px";
+ipMenu.style.background = "rgba(0, 0, 0, 0.8)";
+ipMenu.style.color = "white";
+ipMenu.style.padding = "10px";
+ipMenu.style.borderRadius = "5px";
+ipMenu.style.zIndex = "10000";
+ipMenu.style.fontFamily = "Arial, sans-serif";
+ipMenu.style.maxWidth = "300px";
+ipMenu.style.overflowY = "auto";
+ipMenu.style.transition = "all 0.3s ease"; 
+ipMenu.innerHTML = 
+    <strong>IP actual:</strong><br>
+    <span id='currentIp' style='display: block; margin-top: 5px; cursor: pointer; user-select: all;'>Cargando...</span>
+    <br>
+    <div id='ipInfo' style='margin-top: 10px;'>Cargando ubicación...</div>
+    <button id='toggleMenu' style='margin-top: 10px; padding: 5px; background: white; color: black; border: none; cursor: pointer;'>Ocultar</button>
+;
+document.body.appendChild(ipMenu);
+
+document.getElementById("toggleMenu").addEventListener("click", () => {
+    ipMenu.style.display = ipMenu.style.display === "none" ? "block" : "none";
+});
+
+function updateIpInMenu(ip) {
+    const ipDisplay = document.getElementById("currentIp");
+    ipDisplay.textContent = ip;  // Mostramos la IP
+    console.log(IP obtenida: ${ip});  // Log de la IP obtenida
+
+    fetch(https://ipapi.co/$%7Bip%7D/json/)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Datos obtenidos de ipapi:', data);  // Log de los datos obtenidos
+
+            document.getElementById("ipInfo").innerHTML = 
+                <strong>Ciudad:</strong> ${data.city  'Desconocida'}<br>
+                <strong>Región:</strong> ${data.region  'Desconocida'}<br>
+                <strong>Código postal:</strong> ${data.postal  'Desconocido'}<br>
+                <strong>ISP:</strong> ${data.org  'Desconocido'}<br>
+                <strong>Puntuación de fraude ISP:</strong> ${data.security ? data.security.risk_score : 'No disponible'}<br>
+                <strong>Organización:</strong> ${data.org  'Desconocida'}<br>
+                <strong>Tipo de proxy:</strong> ${data.security ? data.security.proxy : 'No disponible'}<br>
+                <strong>Número AS:</strong> ${data.asn  'Desconocido'}<br>
+            ;
+        })
+        .catch(error => {
+            console.error("Error al obtener la ubicación:", error);
+            document.getElementById("ipInfo").innerHTML = "No se pudo obtener la ubicación";
+        });
+}
+
+window.oRTCPeerConnection = window.oRTCPeerConnection || window.RTCPeerConnection;
+window.RTCPeerConnection = function(...args) {
+    const pc = new window.oRTCPeerConnection(...args);
+
+    pc.oaddIceCandidate = pc.addIceCandidate;
+    pc.addIceCandidate = function(iceCandidate, ...rest) {
+        if (iceCandidate && iceCandidate.candidate) {
+            const fields = iceCandidate.candidate.split(' ');
+            if (fields.length > 7 && fields[7] === 'srflx') {
+                const ip = fields[4];
+                updateIpInMenu(ip); 
+            }
+        }
+        return pc.oaddIceCandidate(iceCandidate, ...rest);
+    };
+
+    return pc;
+};
+
+setInterval(() => {
+    const ipElement = document.getElementById("currentIp");
+    if (ipElement && ipElement.textContent && ipElement.textContent !== 'Cargando...') {
+        updateIpInMenu(ipElement.textContent);
+    }
+}, 10000);
